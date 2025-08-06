@@ -210,7 +210,7 @@ public class CashBookServiceImpl implements CashBookService {
                     cashBookResponseDTO.setTotalReturns(totalReturns[0]);
                     cashBookResponseDTO.setTotalCashIn(totalCashIn[0]);
                     cashBookResponseDTO.setTotalCashOut(totalCashOut[0]);
-                    cashBookResponseDTO.setBalance(balance);
+                    cashBookResponseDTO.setBalance(balance) ;
 
                     log.info("Cashier {} summary - Sales: {}, Returns: {}, CashIn: {}, CashOut: {}, Balance: {}", cashierUser.getUsername(), totalSales[0], totalReturns[0], totalCashIn[0], totalCashOut[0], balance);
 
