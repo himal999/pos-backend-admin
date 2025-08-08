@@ -15,4 +15,7 @@ public class CashBookResponseDTO {
     private BigDecimal totalCashIn;
     private BigDecimal totalCashOut;
     private BigDecimal balance;
+    private SalesInOutResponseDTO openingBalance;
+    private SalesInOutResponseDTO cashierBalance;
+    private BigDecimal balanceAmount;
 }
