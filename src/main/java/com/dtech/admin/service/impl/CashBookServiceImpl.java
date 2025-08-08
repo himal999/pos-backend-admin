@@ -187,7 +187,18 @@ public class CashBookServiceImpl implements CashBookService {
 
                     final BigDecimal[] totalCashIn = {BigDecimal.ZERO};
                     final BigDecimal[] totalCashOut = {BigDecimal.ZERO};
+                    final BigDecimal[] totalCashierBalance = {BigDecimal.ZERO};
+                    final BigDecimal[] totalCashierOpeningBalance = {BigDecimal.ZERO};
                     List<SalesInOutResponseDTO> inOutList = cashInOuts.stream().map(ci -> {
+
+                        if (ci.getCashInOut() == com.dtech.admin.enums.CashInOut.CL) {
+                            totalCashierBalance[0] = totalCashierBalance[0].add(ci.getAmount() != null ? ci.getAmount() : BigDecimal.ZERO);
+                            return null;
+                        }else if(ci.getCashInOut() == com.dtech.admin.enums.CashInOut.OP){
+                            totalCashierOpeningBalance[0] = totalCashierOpeningBalance[0].add(ci.getAmount() != null ? ci.getAmount() : BigDecimal.ZERO);
+                            return null;
+                        }
+
                         SalesInOutResponseDTO io = new SalesInOutResponseDTO();
                         io.setId(ci.getId());
                         io.setRemark(ci.getRemark());
@@ -195,22 +206,39 @@ public class CashBookServiceImpl implements CashBookService {
                         io.setCashInOut(ci.getCashInOut().name());
                         io.setCashInOutDescription(ci.getCashInOut().getDescription());
 
-                        if (ci.getCashInOut() == com.dtech.admin.enums.CashInOut.IN || ci.getCashInOut() == com.dtech.admin.enums.CashInOut.OP) {
-                            totalCashIn[0] = totalCashIn[0].add(ci.getAmount() != null ? BigDecimal.valueOf(ci.getAmount()) : BigDecimal.ZERO);
+                        if (ci.getCashInOut() == com.dtech.admin.enums.CashInOut.IN) {
+                            totalCashIn[0] = totalCashIn[0].add(ci.getAmount() != null ? ci.getAmount() : BigDecimal.ZERO);
                         } else if (ci.getCashInOut() == com.dtech.admin.enums.CashInOut.OUT) {
-                            totalCashOut[0] = totalCashOut[0].add(ci.getAmount() != null ? BigDecimal.valueOf(ci.getAmount()) : BigDecimal.ZERO);
+                            totalCashOut[0] = totalCashOut[0].add(ci.getAmount() != null ? ci.getAmount() : BigDecimal.ZERO);
                         }
 
                         return io;
                     }).toList();
                     cashBookResponseDTO.setInOuts(inOutList);
 
-                    BigDecimal balance = totalSales[0].add(totalCashIn[0]).subtract(totalReturns[0]).subtract(totalCashOut[0]);
+                    BigDecimal balance = totalSales[0].add(totalCashIn[0]).add(totalCashierOpeningBalance[0]).subtract(totalReturns[0]).subtract(totalCashOut[0]);
+
+                    BigDecimal balanceAmount = balance.subtract(totalCashierBalance[0]);
+
                     cashBookResponseDTO.setTotalSales(totalSales[0]);
                     cashBookResponseDTO.setTotalReturns(totalReturns[0]);
                     cashBookResponseDTO.setTotalCashIn(totalCashIn[0]);
                     cashBookResponseDTO.setTotalCashOut(totalCashOut[0]);
-                    cashBookResponseDTO.setBalance(balance) ;
+
+                    SalesInOutResponseDTO closingBalance = new SalesInOutResponseDTO();
+                    closingBalance.setCashInOut(com.dtech.admin.enums.CashInOut.CL.name());
+                    closingBalance.setCashInOutDescription(com.dtech.admin.enums.CashInOut.CL.getDescription());
+                    closingBalance.setAmount(totalCashierBalance[0]);
+
+                    SalesInOutResponseDTO openingBalance = new SalesInOutResponseDTO();
+                    openingBalance.setCashInOut(com.dtech.admin.enums.CashInOut.OP.name());
+                    openingBalance.setCashInOutDescription(com.dtech.admin.enums.CashInOut.OP.getDescription());
+                    openingBalance.setAmount(totalCashierOpeningBalance[0]);
+
+                    cashBookResponseDTO.setOpeningBalance(openingBalance);
+                    cashBookResponseDTO.setCashierBalance(closingBalance);
+                    cashBookResponseDTO.setBalance(balance);
+                    cashBookResponseDTO.setBalanceAmount(balanceAmount);
 
                     log.info("Cashier {} summary - Sales: {}, Returns: {}, CashIn: {}, CashOut: {}, Balance: {}", cashierUser.getUsername(), totalSales[0], totalReturns[0], totalCashIn[0], totalCashOut[0], balance);
 
@@ -385,6 +413,5 @@ public class CashBookServiceImpl implements CashBookService {
             throw e;
         }
     }
-
 
 }

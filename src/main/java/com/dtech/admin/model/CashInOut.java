@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -31,6 +32,6 @@ public class CashInOut extends AdminAudit implements Serializable {
     private String remark;
 
     @Column(name = "amount",nullable = false)
-    private Double amount;
+    private BigDecimal amount;
 
 }
