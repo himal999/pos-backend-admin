@@ -54,6 +54,7 @@ public class TransferSpecification {
 
             if (filterDto.getFromDate() != null) {
                 try {
+                    log.info("Start from search");
                     Date startOfDay = DateTimeUtil.getStartOfDay(filterDto.getFromDate());
                     predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createdDate"),startOfDay));
                 } catch (Exception e) {

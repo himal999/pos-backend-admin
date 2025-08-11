@@ -96,13 +96,19 @@ public class DateTimeUtil {
 
     public static Date getStartOfDay(String dateStr) throws Exception {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
-        return sdf.parse(dateStr);
+        Date date = sdf.parse(dateStr);
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
     }
 
     public static Date getEndOfDay(String dateStr) throws Exception {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
         Date date = sdf.parse(dateStr);
-
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
         cal.set(Calendar.HOUR_OF_DAY, 23);
