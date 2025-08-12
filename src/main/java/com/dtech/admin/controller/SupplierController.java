@@ -2,8 +2,10 @@ package com.dtech.admin.controller;
 
 import com.dtech.admin.dto.request.ChannelRequestDTO;
 import com.dtech.admin.dto.request.PaginationRequest;
+import com.dtech.admin.dto.request.SupplierPaymentRequestDTO;
 import com.dtech.admin.dto.request.SupplierRequestDTO;
 import com.dtech.admin.dto.request.validator.ChannelRequestValidatorDTO;
+import com.dtech.admin.dto.request.validator.SupplierPaymentRequestValidatorDTO;
 import com.dtech.admin.dto.request.validator.SupplierRequestValidatorDTO;
 import com.dtech.admin.dto.response.ApiResponse;
 import com.dtech.admin.dto.search.SupplierSearchDTO;
@@ -83,4 +85,17 @@ public class SupplierController {
         return supplierService.delete(gson.fromJson(gson.toJson(supplierRequestValidatorDTO), SupplierRequestDTO.class), locale);
     }
 
+    @PostMapping(path = "/add-payment", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Handle supplier payment add request", notes = "Supplier payment add request success or failed")
+    public ResponseEntity<? extends ApiResponse<? extends Object>> addPayment(@RequestBody @Validated(OnAdd.class) @Valid SupplierPaymentRequestValidatorDTO paymentRequestValidatorDTO, Locale locale) {
+        log.info("Supplier payment add request controller {} ", paymentRequestValidatorDTO);
+        return supplierService.addPayment(gson.fromJson(gson.toJson(paymentRequestValidatorDTO), SupplierPaymentRequestDTO.class), locale);
+    }
+
+    @PostMapping(path = "/balance", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Handle supplier balance retrieval request", notes = "Supplier balance retrieval request success or failed")
+    public ResponseEntity<? extends ApiResponse<? extends Object>> getSupplierBalance(@RequestBody @Validated(OnGet.class) @Valid SupplierRequestValidatorDTO supplierRequestValidatorDTO, Locale locale) {
+        log.info("Supplier balance request controller {} ", supplierRequestValidatorDTO);
+        return supplierService.getSupplierBalance(gson.fromJson(gson.toJson(supplierRequestValidatorDTO), SupplierRequestDTO.class), locale);
+    }
 }

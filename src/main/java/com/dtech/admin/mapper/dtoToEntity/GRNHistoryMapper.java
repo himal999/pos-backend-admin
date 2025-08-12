@@ -7,6 +7,8 @@ import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeMap;
 
+import java.math.BigDecimal;
+
 
 @Log4j2
 public class GRNHistoryMapper {
@@ -38,6 +40,24 @@ public class GRNHistoryMapper {
             itemGRN.setGrnHistory(grn);
             log.info("GRN item mapper  dto to entity {} ", itemGRN);
             return itemGRN;
+        } catch (Exception e) {
+            log.error(e);
+            throw e;
+        }
+    }
+
+    public static GRN mapGrn(GRNRequestDTO grnRequestDTO, Supplier supplier, Location location) {
+        try {
+            log.info("GRN mapper start dto to entity for GRN");
+            TypeMap<GRNRequestDTO, GRN> typeMap = modelMapper.typeMap(GRNRequestDTO.class, GRN.class);
+            GRN grn = modelMapper.map(grnRequestDTO, GRN.class);
+            grn.setId(null);
+            grn.setSupplier(supplier);
+            grn.setLocation(location);
+            grn.setPaidAmount(BigDecimal.ZERO);
+            grn.setBalance(grnRequestDTO.getCost());
+            log.info("GRN mapper dto to entity {} ", grn);
+            return grn;
         } catch (Exception e) {
             log.error(e);
             throw e;

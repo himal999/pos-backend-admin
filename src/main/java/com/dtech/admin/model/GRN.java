@@ -30,9 +30,19 @@ public class GRN extends AdminAudit implements Serializable {
     @Column(name = "credit",nullable = false)
     private BigDecimal creditAmount;
 
+    @Column(name = "paid_amount", nullable = false)
+    private BigDecimal paidAmount = BigDecimal.ZERO;
+
+    @Column(name = "balance", nullable = false)
+    private BigDecimal balance = BigDecimal.ZERO;
+
     @ManyToOne(fetch = FetchType.LAZY,targetEntity = Location.class)
     @JoinColumn(name = "location_code",referencedColumnName = "code",nullable = false)
     private Location location;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Supplier.class)
+    @JoinColumn(name = "supplier_id", referencedColumnName = "id", nullable = false)
+    private Supplier supplier;
 
 //    @OneToMany(mappedBy = "grn",cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 //    private List<ItemGRN> itemGRNS;

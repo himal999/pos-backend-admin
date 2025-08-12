@@ -73,6 +73,9 @@ public class GRNServiceImpl implements GRNService {
     private final StockRepository stockRepository;
 
     @Autowired
+    private final GRNRepository grnRepository;
+
+    @Autowired
     private final GRNHistoryRepository grnHistoryRepository;
 
     @Autowired
@@ -171,7 +174,7 @@ public class GRNServiceImpl implements GRNService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(readOnly = false)
+    @Transactional(readOnly = false)
     public ResponseEntity<ApiResponse<Object>> add(GRNRequestDTO grnRequestDTO, Locale locale) {
         try {
             log.info("GRN request process one {}", grnRequestDTO);
@@ -180,7 +183,7 @@ public class GRNServiceImpl implements GRNService {
                     .map(supplier -> locationRepository.findByCodeAndStatus(grnRequestDTO.getLocationCode(), Status.ACTIVE).map(location -> {
                         String missingItems = checkItems(grnRequestDTO.getItemGRNS());
 
-                        if (missingItems == null || !missingItems.isEmpty()) {
+                        if (missingItems != null && !missingItems.isEmpty()) {
                             log.info("GRN request process missing {} missing items", grnRequestDTO);
                             return ResponseEntity.ok().body(
                                     responseUtil.error(
@@ -196,13 +199,16 @@ public class GRNServiceImpl implements GRNService {
                         GRNHistory grnHistory = GRNHistoryMapper.mapGrnHistory(grnRequestDTO, supplier, location);
                         GRNHistory savedHistory = grnHistoryRepository.save(grnHistory);
 
+                        GRN grn = GRNHistoryMapper.mapGrn(grnRequestDTO, supplier, location);
+                        GRN savedGrn = grnRepository.save(grn);
+
                         List<Stock> stocks = new ArrayList<>();
                         List<GRNItemHistory> itemGRNHistory = new ArrayList<>();
 
                         for (GRNRequestItemDTO grnRequestItemDTO : grnRequestItemDTOS) {
                             log.info("Grn request {} ", grnRequestItemDTO);
                             itemRepository.findByCodeAndStatusNot(grnRequestItemDTO.getItemCode(), Status.DELETE).ifPresent(item -> {
-                                log.info("item request {} {}", location.getCode() , item.getCode());
+                                log.info("item request {} {}", location.getCode(), item.getCode());
                                 Optional<Stock> existingItemOpt = stockRepository.findMatchingItem(
                                         location.getCode(),
                                         item.getCode(),

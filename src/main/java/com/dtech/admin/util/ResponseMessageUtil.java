@@ -125,6 +125,11 @@ public class ResponseMessageUtil {
     public final static String SUPPLIER_VALUES_NOT_CHANGING = "val.supplier.values.not.changing";
     public final static String SUPPLIER_UPDATE_SUCCESS = "val.supplier.update.success";
     public final static String SUPPLIER_DELETE_SUCCESS = "val.supplier.delete.success";
+    public final static String SUPPLIER_PAYMENT_ADDED_SUCCESS = "val.supplier.payment.added.success";
+    public final static String SUPPLIER_BALANCE_RETRIEVED_SUCCESS = "val.supplier.balance.retrieved.success";
+    public final static String SUPPLIER_GRN_NOT_BELONG_SUPPLIER = "val.supplier.grn.not.belong.supplier";
+    public final static String SUPPLIER_PAYMENT_EXCEEDS_GRN_COST = "val.supplier.payment.exceeds.grn.cost";
+    public final static String SUPPLIER_GRN_NOT_FOUND_BY_ID = "val.supplier.grn.not.found.by.id";
 
     /*Location*/
     public final static String LOCATION_FILTER_LIST_SUCCESS = "val.location.filter.list.success";
