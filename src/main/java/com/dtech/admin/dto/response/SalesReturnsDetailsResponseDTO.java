@@ -9,4 +9,6 @@ import java.math.BigDecimal;
 public class SalesReturnsDetailsResponseDTO {
     private Long id;
     private BigDecimal qty;
+    private String itemCode;
+    private String itemName;
 }

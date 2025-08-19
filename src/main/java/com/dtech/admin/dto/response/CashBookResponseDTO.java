@@ -10,6 +10,7 @@ public class CashBookResponseDTO {
     private List<SalesResponseDTO> sales;
     private List<SalesReturnsResponseDTO> returns;
     private List<SalesInOutResponseDTO> inOuts;
+    private List<SalesInOutResponseDTO> openingClosed;
     private BigDecimal totalSales;
     private BigDecimal totalReturns;
     private BigDecimal totalCashIn;

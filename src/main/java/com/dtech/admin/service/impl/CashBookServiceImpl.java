@@ -1,14 +1,13 @@
 package com.dtech.admin.service.impl;
 
 import com.dtech.admin.dto.SimpleBaseDTO;
+import com.dtech.admin.dto.request.CashierBalanceActionRequestDTO;
 import com.dtech.admin.dto.request.CashierBalanceRequestDTO;
 import com.dtech.admin.dto.request.ChannelRequestDTO;
 import com.dtech.admin.dto.response.*;
-import com.dtech.admin.enums.CashierType;
-import com.dtech.admin.enums.SalesType;
-import com.dtech.admin.enums.Status;
-import com.dtech.admin.enums.Title;
+import com.dtech.admin.enums.*;
 import com.dtech.admin.model.*;
+import com.dtech.admin.model.CashInOut;
 import com.dtech.admin.repository.*;
 import com.dtech.admin.service.CashBookService;
 import com.dtech.admin.util.CommonPrivilegeGetter;
@@ -189,32 +188,51 @@ public class CashBookServiceImpl implements CashBookService {
                     final BigDecimal[] totalCashOut = {BigDecimal.ZERO};
                     final BigDecimal[] totalCashierBalance = {BigDecimal.ZERO};
                     final BigDecimal[] totalCashierOpeningBalance = {BigDecimal.ZERO};
-                    List<SalesInOutResponseDTO> inOutList = cashInOuts.stream().map(ci -> {
 
-                        if (ci.getCashInOut() == com.dtech.admin.enums.CashInOut.CL) {
-                            totalCashierBalance[0] = totalCashierBalance[0].add(ci.getAmount() != null ? ci.getAmount() : BigDecimal.ZERO);
-                            return null;
-                        }else if(ci.getCashInOut() == com.dtech.admin.enums.CashInOut.OP){
-                            totalCashierOpeningBalance[0] = totalCashierOpeningBalance[0].add(ci.getAmount() != null ? ci.getAmount() : BigDecimal.ZERO);
-                            return null;
-                        }
+                    List<SalesInOutResponseDTO> inOutList = cashInOuts.stream()
+                            .filter(ci -> ci.getCashInOut() == com.dtech.admin.enums.CashInOut.IN || ci.getCashInOut() == com.dtech.admin.enums.CashInOut.OUT)
+                            .map(ci -> {
+                                SalesInOutResponseDTO io = new SalesInOutResponseDTO();
+                                io.setId(ci.getId());
+                                io.setRemark(ci.getRemark());
+                                io.setAmount(ci.getAmount());
+                                io.setCashInOut(ci.getCashInOut().name());
+                                io.setCashInOutDescription(ci.getCashInOut().getDescription());
 
-                        SalesInOutResponseDTO io = new SalesInOutResponseDTO();
-                        io.setId(ci.getId());
-                        io.setRemark(ci.getRemark());
-                        io.setAmount(ci.getAmount());
-                        io.setCashInOut(ci.getCashInOut().name());
-                        io.setCashInOutDescription(ci.getCashInOut().getDescription());
+                                if (ci.getCashInOut() == com.dtech.admin.enums.CashInOut.IN) {
+                                    totalCashIn[0] = totalCashIn[0].add(ci.getAmount() != null ? ci.getAmount() : BigDecimal.ZERO);
+                                } else if (ci.getCashInOut() == com.dtech.admin.enums.CashInOut.OUT) {
+                                    totalCashOut[0] = totalCashOut[0].add(ci.getAmount() != null ? ci.getAmount() : BigDecimal.ZERO);
+                                }
 
-                        if (ci.getCashInOut() == com.dtech.admin.enums.CashInOut.IN) {
-                            totalCashIn[0] = totalCashIn[0].add(ci.getAmount() != null ? ci.getAmount() : BigDecimal.ZERO);
-                        } else if (ci.getCashInOut() == com.dtech.admin.enums.CashInOut.OUT) {
-                            totalCashOut[0] = totalCashOut[0].add(ci.getAmount() != null ? ci.getAmount() : BigDecimal.ZERO);
-                        }
+                                return io;
+                            })
+                            .toList();
 
-                        return io;
-                    }).toList();
                     cashBookResponseDTO.setInOuts(inOutList);
+
+                    List<SalesInOutResponseDTO> opClList = cashInOuts.stream()
+                            .filter(ci -> ci.getCashInOut() == com.dtech.admin.enums.CashInOut.CL || ci.getCashInOut() == com.dtech.admin.enums.CashInOut.OP)
+                            .map(ci -> {
+
+                                SalesInOutResponseDTO io = new SalesInOutResponseDTO();
+                                io.setId(ci.getId());
+                                io.setRemark(ci.getRemark());
+                                io.setAmount(ci.getAmount());
+                                io.setCashInOut(ci.getCashInOut().name());
+                                io.setCashInOutDescription(ci.getCashInOut().getDescription());
+
+                                if (ci.getCashInOut() == com.dtech.admin.enums.CashInOut.CL) {
+                                    totalCashierBalance[0] = totalCashierBalance[0].add(ci.getAmount() != null ? ci.getAmount() : BigDecimal.ZERO);
+                                } else if (ci.getCashInOut() == com.dtech.admin.enums.CashInOut.OP) {
+                                    totalCashierOpeningBalance[0] = totalCashierOpeningBalance[0].add(ci.getAmount() != null ? ci.getAmount() : BigDecimal.ZERO);
+                                }
+
+                                return io;
+                            })
+                            .toList();
+
+                    cashBookResponseDTO.setOpeningClosed(opClList);
 
                     BigDecimal balance = totalSales[0].add(totalCashIn[0]).add(totalCashierOpeningBalance[0]).subtract(totalReturns[0]).subtract(totalCashOut[0]);
 
@@ -288,7 +306,7 @@ public class CashBookServiceImpl implements CashBookService {
             responseBody.put("locations", allLocationsResponse);
             responseBody.put("grandSummary", grandSummary);
 
-            return ResponseEntity.ok().body(responseUtil.success((Object) responseBody, messageSource.getMessage(ResponseMessageUtil.CASHIER_BALANCE_DATA_RETRIEVED_SUCCESS,null, locale)));
+            return ResponseEntity.ok().body(responseUtil.success((Object) responseBody, messageSource.getMessage(ResponseMessageUtil.CASHIER_BALANCE_DATA_RETRIEVED_SUCCESS, null, locale)));
 
         } catch (Exception e) {
             log.error(e);
@@ -375,6 +393,8 @@ public class CashBookServiceImpl implements CashBookService {
                     List<SalesReturnsDetailsResponseDTO> responseList = returnDetails.stream().map(rd -> {
                         SalesReturnsDetailsResponseDTO dto = new SalesReturnsDetailsResponseDTO();
                         dto.setId(rd.getId());
+                        dto.setItemCode(rd.getBillingDetail().getStock().getItem().getCode());
+                        dto.setItemName(rd.getBillingDetail().getStock().getItem().getDescription());
                         dto.setQty(rd.getQty());
                         return dto;
                     }).toList();
@@ -407,6 +427,44 @@ public class CashBookServiceImpl implements CashBookService {
                     );
                 });
             }
+
+        } catch (Exception e) {
+            log.error(e);
+            throw e;
+        }
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ApiResponse<Object>> edit(CashierBalanceActionRequestDTO cashierBalanceActionRequestDTO, Locale locale) throws Exception {
+        try {
+            log.info("Cashier balance request: {}", cashierBalanceActionRequestDTO);
+
+            if(cashierBalanceActionRequestDTO.getActionType().equals(CashierBalanceActionType.CASH_SUMMARY.name())){
+                log.info("Cash in out");
+                return cashInOutRepository.findById(cashierBalanceActionRequestDTO.getId()).map(cashInOut -> {
+
+                    cashInOut.setAmount(cashierBalanceActionRequestDTO.getActionType());
+
+                }).orElseGet(() -> {
+                    log.info("Cashier not found {}", cashierBalanceActionRequestDTO.getId());
+                    return responseUtil.error(
+                            null,
+                            1039,
+                            messageSource.getMessage(
+                                    ResponseMessageUtil.CASHIER_IN_OUT_NOT_FOUND,
+                                    new Object[]{cashierBalanceActionRequestDTO.getId()},
+                                    locale
+                            )
+                    );
+                });
+            }else {
+
+            }
+
+
+
+
 
         } catch (Exception e) {
             log.error(e);

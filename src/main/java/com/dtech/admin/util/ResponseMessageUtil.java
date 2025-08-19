@@ -177,5 +177,6 @@ public class ResponseMessageUtil {
     public final static String CASHIER_BALANCE_DATA_RETRIEVED_SUCCESS = "val.cashier.balance.data.retrieved.success";
     public final static String CASHIER_BALANCE_INVOICE_NUMBER_NOT_FOUND = "val.cashier.balance.invoice.number.not.found";
     public final static String CASHIER_BALANCE_DETAILS_RETRIEVED_SUCCESS = "val.cashier.balance.details.retrieved.success";
+    public final static String CASHIER_IN_OUT_NOT_FOUND = "val.cashier.in.out.not.found";
 
 }
