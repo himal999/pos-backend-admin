@@ -13,4 +13,6 @@ public interface CashBookService {
     ResponseEntity<ApiResponse<Object>> cashierBalance(CashierBalanceRequestDTO cashierBalanceRequestDTO, Locale locale) throws Exception;
     ResponseEntity<ApiResponse<Object>> cashierBalanceView(CashierBalanceRequestDTO cashierBalanceRequestDTO, Locale locale) throws Exception;
     ResponseEntity<ApiResponse<Object>> edit(CashierBalanceActionRequestDTO cashierBalanceActionRequestDTO, Locale locale) throws Exception;
+    ResponseEntity<ApiResponse<Object>> delete(CashierBalanceActionRequestDTO cashierBalanceActionRequestDTO, Locale locale) throws Exception;
+    ResponseEntity<ApiResponse<Object>> add(CashierBalanceActionRequestDTO cashierBalanceActionRequestDTO, Locale locale) throws Exception;
 }

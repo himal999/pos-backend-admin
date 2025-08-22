@@ -1,5 +1,6 @@
 package com.dtech.admin.model;
 
+import com.dtech.admin.enums.Status;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -40,4 +41,8 @@ public class Returns extends AdminAudit implements Serializable {
 
     @OneToMany(mappedBy = "returns")
     private List<ReturnDetails> returnDetails;
+
+    @Column(name = "status",nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Status status;
 }

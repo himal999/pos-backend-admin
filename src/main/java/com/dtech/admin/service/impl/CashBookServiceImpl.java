@@ -6,6 +6,7 @@ import com.dtech.admin.dto.request.CashierBalanceRequestDTO;
 import com.dtech.admin.dto.request.ChannelRequestDTO;
 import com.dtech.admin.dto.response.*;
 import com.dtech.admin.enums.*;
+import com.dtech.admin.mapper.dtoToEntity.CashInOutMapper;
 import com.dtech.admin.model.*;
 import com.dtech.admin.model.CashInOut;
 import com.dtech.admin.repository.*;
@@ -37,13 +38,14 @@ public class CashBookServiceImpl implements CashBookService {
     private final BillingRepository billingRepository;
     private final ReturnsRepository returnsRepository;
     private final CashInOutRepository cashInOutRepository;
+    private final StockRepository stockRepository;
 
     @Override
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<Object>> getReferenceDate(ChannelRequestDTO channelRequestDTO, Locale locale) {
         try {
-            log.info("Entering getReferenceDate with request: {}", channelRequestDTO);
 
+            log.info("Entering getReferenceDate with request: {}", channelRequestDTO);
             Map<String, Object> responseMap = new HashMap<>();
 
             AuthorizationTaskResponseDTO privileges = commonPrivilegeGetter
@@ -436,40 +438,211 @@ public class CashBookServiceImpl implements CashBookService {
 
     @Override
     @Transactional
-    public ResponseEntity<ApiResponse<Object>> edit(CashierBalanceActionRequestDTO cashierBalanceActionRequestDTO, Locale locale) throws Exception {
+    public ResponseEntity<ApiResponse<Object>> edit(CashierBalanceActionRequestDTO dto, Locale locale) {
         try {
-            log.info("Cashier balance request: {}", cashierBalanceActionRequestDTO);
+            log.info("Cashier balance request: {}", dto);
 
-            if(cashierBalanceActionRequestDTO.getActionType().equals(CashierBalanceActionType.CASH_SUMMARY.name())){
-                log.info("Cash in out");
-                return cashInOutRepository.findById(cashierBalanceActionRequestDTO.getId()).map(cashInOut -> {
+            return cashInOutRepository.findById(dto.getId()).map(cashInOut -> {
 
-                    cashInOut.setAmount(cashierBalanceActionRequestDTO.getActionType());
+                com.dtech.admin.enums.CashInOut type = cashInOut.getCashInOut();
+                boolean isInOut = EnumSet.of(com.dtech.admin.enums.CashInOut.IN, com.dtech.admin.enums.CashInOut.OUT).contains(type);
+                boolean isOpCl = EnumSet.of(com.dtech.admin.enums.CashInOut.OP, com.dtech.admin.enums.CashInOut.CL).contains(type);
 
-                }).orElseGet(() -> {
-                    log.info("Cashier not found {}", cashierBalanceActionRequestDTO.getId());
-                    return responseUtil.error(
-                            null,
-                            1039,
-                            messageSource.getMessage(
-                                    ResponseMessageUtil.CASHIER_IN_OUT_NOT_FOUND,
-                                    new Object[]{cashierBalanceActionRequestDTO.getId()},
-                                    locale
-                            )
-                    );
-                });
-            }else {
+                if (isInOut) {
+                    log.info("Cash IN/OUT edit: {}", dto);
+                    if (Objects.equals(cashInOut.getAmount(), dto.getAmount()) &&
+                            Objects.equals(cashInOut.getRemark(), dto.getRemark())) {
+                        log.info("No changes detected for IN/OUT.");
+                        return valuesNotChangedResponse(locale);
+                    }
+                    cashInOut.setRemark(dto.getRemark());
 
-            }
+                } else if (isOpCl) {
+                    log.info("Cash OP/CL edit: {}", dto);
+                    if (Objects.equals(cashInOut.getAmount(), dto.getAmount())) {
+                        log.info("No changes detected for OP/CL.");
+                        return valuesNotChangedResponse(locale);
+                    }
+                }
 
+                cashInOut.setAmount(dto.getAmount());
+                cashInOutRepository.saveAndFlush(cashInOut);
 
+                return ResponseEntity.ok().body(
+                        responseUtil.success(null,
+                                messageSource.getMessage(
+                                        ResponseMessageUtil.CASHIER_IN_OUT_DETAILS_UPDATE_SUCCESS,
+                                        null,
+                                        locale
+                                )
+                        )
+                );
 
-
+            }).orElseGet(() -> {
+                log.info("Cashier not found: {}", dto.getId());
+                return ResponseEntity.ok().body(responseUtil.error(null, 1039,
+                        messageSource.getMessage(ResponseMessageUtil.CASHIER_IN_OUT_NOT_FOUND,
+                                null, locale)));
+            });
 
         } catch (Exception e) {
             log.error(e);
             throw e;
         }
+    }
+
+    @Override
+    @Transactional(readOnly = false)
+    public ResponseEntity<ApiResponse<Object>> delete(CashierBalanceActionRequestDTO cashierBalanceActionRequestDTO, Locale locale) throws Exception {
+        try {
+            log.info("Cashier balance request {} ", cashierBalanceActionRequestDTO);
+
+            if (cashierBalanceActionRequestDTO.getRequestType().equals(CashierBalanceRequestType.IN_OUT_OP_CL.name())) {
+                log.info("In out op cl");
+
+                return cashInOutRepository.findById(cashierBalanceActionRequestDTO.getId()).map(cashInOut -> {
+                    cashInOut.setStatus(Status.DELETE);
+                    cashInOutRepository.saveAndFlush(cashInOut);
+
+                    return ResponseEntity.ok().body(
+                            responseUtil.success(null,
+                                    messageSource.getMessage(
+                                            ResponseMessageUtil.CASHIER_IN_OUT_DETAILS_DELETE_SUCCESS,
+                                            null,
+                                            locale
+                                    )
+                            )
+                    );
+
+                }).orElseGet(() -> {
+                    log.info("Cashier in out not found: {}", cashierBalanceActionRequestDTO.getId());
+                    return ResponseEntity.ok().body(responseUtil.error(null, 1039,
+                            messageSource.getMessage(ResponseMessageUtil.CASHIER_IN_OUT_NOT_FOUND,
+                                    null, locale)));
+                });
+
+            } else if (cashierBalanceActionRequestDTO.getRequestType().equals(CashierBalanceRequestType.SALES.name())) {
+                log.info("Sales");
+
+                return billingRepository.findById(cashierBalanceActionRequestDTO.getId()).map(billing -> {
+                    billing.setStatus(Status.DELETE);
+                    billingRepository.saveAndFlush(billing);
+
+                    List<Stock> updatedStock = billing.getBillingDetails().stream().map(billingDetail -> {
+                        log.info("Update stock {}", billingDetail.getStock().getId());
+                        billingDetail.getStock().setQty(billingDetail.getStock().getQty().add(billingDetail.getQty()));
+                        return billingDetail.getStock();
+                    }).toList();
+
+                    stockRepository.saveAllAndFlush(updatedStock);
+                    log.info("Update stock successfully sales {}", updatedStock.size());
+
+                    return ResponseEntity.ok().body(
+                            responseUtil.success(null,
+                                    messageSource.getMessage(
+                                            ResponseMessageUtil.CASHIER_SALES_DETAILS_DELETE_SUCCESS,
+                                            null,
+                                            locale
+                                    )
+                            )
+                    );
+
+                }).orElseGet(() -> {
+                    log.info("Billing not found: {}", cashierBalanceActionRequestDTO.getId());
+                    return ResponseEntity.ok().body(responseUtil.error(null, 1040,
+                            messageSource.getMessage(ResponseMessageUtil.BILLING_NOT_FOUND,
+                                    null, locale)));
+                });
+
+            } else if (cashierBalanceActionRequestDTO.getRequestType().equals(CashierBalanceRequestType.RETURNS.name())) {
+                log.info("Sales returns");
+
+                return returnsRepository.findById(cashierBalanceActionRequestDTO.getId()).map(returns -> {
+                    returns.setStatus(Status.DELETE);
+                    returnsRepository.saveAndFlush(returns);
+
+                    List<Stock> updatedStock = returns.getReturnDetails().stream()
+                            .map(returnDetails -> {
+                                log.info("Update stock {}", returnDetails.getId());
+
+                                if (returnDetails.getBillingDetail() != null) {
+                                    log.info("Billing Detail {}", returnDetails.getBillingDetail().getId());
+                                    Stock stock = returnDetails.getBillingDetail().getStock();
+                                    stock.setQty(stock.getQty().add(returnDetails.getQty()));
+                                    return stock;
+                                } else if (returnDetails.getReturnsByItemDetails() != null) {
+                                    log.info("Returns by item {}", returnDetails.getReturnsByItemDetails().getId());
+                                    Stock stock = returnDetails.getReturnsByItemDetails().getStock();
+                                    stock.setQty(stock.getQty().add(returnDetails.getQty()));
+                                    return stock;
+                                } else {
+                                    log.info("No BillingDetail or ReturnsByItemDetails for return detail {}", returnDetails.getId());
+                                    return null;
+                                }
+                            })
+                            .filter(Objects::nonNull)
+                            .toList();
+
+                    stockRepository.saveAllAndFlush(updatedStock);
+                    log.info("Update stock successfully returns {}", updatedStock.size());
+
+                    return ResponseEntity.ok().body(
+                            responseUtil.success(null,
+                                    messageSource.getMessage(
+                                            ResponseMessageUtil.CASHIER_RETURNS_DETAILS_DELETE_SUCCESS,
+                                            null,
+                                            locale
+                                    )
+                            )
+                    );
+
+                }).orElseGet(() -> {
+                    log.info("Returns not found: {}", cashierBalanceActionRequestDTO.getId());
+                    return ResponseEntity.ok().body(responseUtil.error(null, 1040,
+                            messageSource.getMessage(ResponseMessageUtil.BILLING_NOT_FOUND,
+                                    null, locale)));
+                });
+
+            } else {
+                log.info("Invalid request type: {}", cashierBalanceActionRequestDTO.getRequestType());
+                return ResponseEntity.ok().body(responseUtil.error(null, 1041,
+                        messageSource.getMessage(ResponseMessageUtil.INVALID_REQUEST,
+                                null, locale)));
+            }
+
+        } catch (Exception e) {
+            log.error(e);
+            throw e;
+        }
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ApiResponse<Object>> add(CashierBalanceActionRequestDTO cashierBalanceActionRequestDTO, Locale locale) throws Exception {
+        try {
+           log.info("Cash in out add {}", cashierBalanceActionRequestDTO.getId());
+
+           return cashierUserRepository.findByUsername(cashierBalanceActionRequestDTO.getCashierUser()).map(cashierUser -> {
+                CashInOut cashInOut = CashInOutMapper.mapCashInout(cashierBalanceActionRequestDTO, cashierUser);
+                cashInOutRepository.saveAndFlush(cashInOut);
+                return ResponseEntity.ok().body(responseUtil.success(null, messageSource.getMessage(ResponseMessageUtil.CASH_IN_OUT_ADDED_SUCCESSFULLY,
+                        new Object[]{com.dtech.admin.enums.CashInOut.valueOf(cashierBalanceActionRequestDTO.getCashInOut()).getDescription()}
+                        , locale)));
+            }).orElseGet(() -> {
+                log.info("cashier user not found {}", cashierBalanceActionRequestDTO.getCashierUser());
+                return ResponseEntity.ok().body(responseUtil.error(null, 1013, messageSource.getMessage(ResponseMessageUtil.CASHIER_USER_NOT_FOUND, new Object[]{cashierBalanceActionRequestDTO.getCashierUser()}, locale)));
+            });
+
+        }catch (Exception e) {
+            log.error(e);
+            throw e;
+        }
+    }
+
+    private ResponseEntity<ApiResponse<Object>> valuesNotChangedResponse(Locale locale) {
+        return ResponseEntity.ok().body(responseUtil.error(null, 1040,
+                messageSource.getMessage(ResponseMessageUtil.VALUES_NOT_CHANGING,
+                        null, locale)));
     }
 
 }

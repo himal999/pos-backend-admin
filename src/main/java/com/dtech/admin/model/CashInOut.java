@@ -1,5 +1,7 @@
 package com.dtech.admin.model;
 
+import com.dtech.admin.enums.Status;
+import com.dtech.admin.enums.Title;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -33,5 +35,9 @@ public class CashInOut extends AdminAudit implements Serializable {
 
     @Column(name = "amount",nullable = false)
     private BigDecimal amount;
+
+    @Column(name = "status",nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
 }

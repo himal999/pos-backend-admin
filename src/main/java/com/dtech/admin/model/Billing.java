@@ -2,6 +2,7 @@ package com.dtech.admin.model;
 
 import com.dtech.admin.enums.PaymentType;
 import com.dtech.admin.enums.SalesType;
+import com.dtech.admin.enums.Status;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -57,5 +58,9 @@ public class Billing extends AdminAudit implements Serializable {
 
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "billing")
     List<BillingDetail> billingDetails;
+
+    @Column(name = "status",nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
 }

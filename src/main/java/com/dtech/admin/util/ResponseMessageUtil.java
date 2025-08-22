@@ -178,5 +178,15 @@ public class ResponseMessageUtil {
     public final static String CASHIER_BALANCE_INVOICE_NUMBER_NOT_FOUND = "val.cashier.balance.invoice.number.not.found";
     public final static String CASHIER_BALANCE_DETAILS_RETRIEVED_SUCCESS = "val.cashier.balance.details.retrieved.success";
     public final static String CASHIER_IN_OUT_NOT_FOUND = "val.cashier.in.out.not.found";
+    public final static String BILLING_NOT_FOUND = "val.billing.not.found";
+    public final static String CASHIER_IN_OUT_DETAILS_UPDATE_SUCCESS = "val.cashier.in.out.details.update.success";
+    public final static String CASHIER_IN_OUT_DETAILS_DELETE_SUCCESS = "val.cashier.in.out.details.delete.success";
+    public final static String CASHIER_SALES_DETAILS_DELETE_SUCCESS = "val.cashier.sales.details.delete.success";
+    public final static String CASHIER_RETURNS_DETAILS_DELETE_SUCCESS = "val.cashier.returns.details.delete.success";
+    public final static String INVALID_REQUEST = "val.invalid.request";
+    public final static String VALUES_NOT_CHANGING = "val.values.not.changing";
+    public final static String CASHIER_USER_NOT_FOUND = "val.cashier.user.not.found";
+    public static final String CASH_IN_OUT_ADDED_SUCCESSFULLY = "val.cash.in.out.added.success";
+
 
 }
