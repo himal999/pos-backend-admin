@@ -203,7 +203,7 @@ public class GRNServiceImpl implements GRNService {
                             log.info("Grn request {} ", grnRequestItemDTO);
                             itemRepository.findByCodeAndStatusNot(grnRequestItemDTO.getItemCode(), Status.DELETE).ifPresent(item -> {
                                 log.info("item request {} {}", location.getCode() , item.getCode());
-                                Optional<Stock> existingItemOpt = stockRepository.findMatchingItem(
+                                List<Stock> existingItemOpt = stockRepository.findMatchingItem(
                                         location.getCode(),
                                         item.getCode(),
                                         grnRequestItemDTO.getLablePrice(),
@@ -215,8 +215,8 @@ public class GRNServiceImpl implements GRNService {
                                         Status.DELETE
                                 );
 
-                                if (existingItemOpt.isPresent()) {
-                                    Stock existingItem = existingItemOpt.get();
+                                if (!existingItemOpt.isEmpty()) {
+                                    Stock existingItem = existingItemOpt.getFirst();
                                     existingItem.setQty(existingItem.getQty().add(grnRequestItemDTO.getQty()));
                                     stocks.add(existingItem);
                                     log.info("Existing ItemGRN updated: {}", existingItem);
