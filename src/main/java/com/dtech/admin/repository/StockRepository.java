@@ -21,7 +21,7 @@ public interface StockRepository extends JpaRepository<Stock, Long> , JpaSpecifi
             "i.lablePrice = :lablePrice AND i.itemCost = :itemCost AND " +
             "i.retailPrice = :retailPrice AND i.wholesalePrice = :wholesalePrice AND " +
             "i.retailDiscount = :retailDiscount AND i.wholesaleDiscount = :wholesaleDiscount AND i.status != :status AND l.status != 'DELETE' AND it.status != 'DELETE' ")
-    Optional<Stock> findMatchingItem(
+    List<Stock> findMatchingItem(
             @Param("location") String location,
             @Param("item") String item,
             @Param("lablePrice") BigDecimal lablePrice,
