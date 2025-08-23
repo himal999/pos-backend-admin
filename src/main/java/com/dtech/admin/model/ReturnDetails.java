@@ -27,6 +27,10 @@ public class ReturnDetails extends AdminAudit implements Serializable {
     @JoinColumn(name = "billing_details_id",referencedColumnName = "id",nullable = false)
     private BillingDetail billingDetail;
 
+    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
+    @JoinColumn(name = "returns_by_item_id",referencedColumnName = "id")
+    private ReturnsByItemDetails returnsByItemDetails;
+
     @Column(name = "qty",nullable = false)
     private BigDecimal qty;
 

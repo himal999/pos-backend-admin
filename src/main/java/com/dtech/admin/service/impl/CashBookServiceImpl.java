@@ -136,13 +136,15 @@ public class CashBookServiceImpl implements CashBookService {
                         dto.setPaymentType(billing.getPaymentType().name());
                         dto.setPaymentTypeDescription(billing.getPaymentType().getDescription());
 
-                        CustomerResponseDTO customer = new CustomerResponseDTO();
-                        customer.setTitle(billing.getCustomer().getTitle().name());
-                        customer.setTitleDescription(Title.valueOf(billing.getCustomer().getTitle().name()).getDescription());
-                        customer.setFirstName(billing.getCustomer().getFirstName());
-                        customer.setLastName(billing.getCustomer().getLastName());
-                        customer.setCity(billing.getCustomer().getCity());
-                        dto.setCustomer(customer);
+                        if(billing.getCustomer() != null){
+                            CustomerResponseDTO customer = new CustomerResponseDTO();
+                            customer.setTitle(billing.getCustomer().getTitle().name());
+                            customer.setTitleDescription(Title.valueOf(billing.getCustomer().getTitle().name()).getDescription());
+                            customer.setFirstName(billing.getCustomer().getFirstName());
+                            customer.setLastName(billing.getCustomer().getLastName());
+                            customer.setCity(billing.getCustomer().getCity());
+                            dto.setCustomer(customer);
+                        }
 
                         dto.setSalesType(billing.getSalesType().name());
                         dto.setSalesTypeDescription(SalesType.valueOf(billing.getSalesType().name()).getDescription());
@@ -167,13 +169,15 @@ public class CashBookServiceImpl implements CashBookService {
                         ret.setInvoiceNumber(r.getReturnsInvoice());
                         ret.setDebitAmount(r.getDebitAmount());
 
-                        CustomerResponseDTO customer = new CustomerResponseDTO();
-                        customer.setTitle(r.getReturnDetails().getFirst().getBillingDetail().getBilling().getCustomer().getTitle().name());
-                        customer.setTitleDescription(Title.valueOf(r.getReturnDetails().getFirst().getBillingDetail().getBilling().getCustomer().getTitle().name()).getDescription());
-                        customer.setFirstName(r.getReturnDetails().getFirst().getBillingDetail().getBilling().getCustomer().getFirstName());
-                        customer.setLastName(r.getReturnDetails().getFirst().getBillingDetail().getBilling().getCustomer().getLastName());
-                        customer.setCity(r.getReturnDetails().getFirst().getBillingDetail().getBilling().getCustomer().getCity());
-                        ret.setCustomer(customer);
+                        if(r.getReturnDetails().getFirst().getBillingDetail() != null && r.getReturnDetails().getFirst().getBillingDetail().getBilling().getCustomer() != null){
+                            CustomerResponseDTO customer = new CustomerResponseDTO();
+                            customer.setTitle(r.getReturnDetails().getFirst().getBillingDetail().getBilling().getCustomer().getTitle().name());
+                            customer.setTitleDescription(Title.valueOf(r.getReturnDetails().getFirst().getBillingDetail().getBilling().getCustomer().getTitle().name()).getDescription());
+                            customer.setFirstName(r.getReturnDetails().getFirst().getBillingDetail().getBilling().getCustomer().getFirstName());
+                            customer.setLastName(r.getReturnDetails().getFirst().getBillingDetail().getBilling().getCustomer().getLastName());
+                            customer.setCity(r.getReturnDetails().getFirst().getBillingDetail().getBilling().getCustomer().getCity());
+                            ret.setCustomer(customer);
+                        }
 
                         totalReturns[0] = totalReturns[0].add(r.getDebitAmount() != null ? r.getDebitAmount() : BigDecimal.ZERO);
 
