@@ -34,7 +34,7 @@ public class Customer extends AdminAudit implements Serializable {
     @Column(name = "city",nullable = false)
     private String city;
 
-    @Column(name = "tel_no")
+    @Column(name = "mobile")
     private String telNo;
 
     @Column(name = "email")
