@@ -34,8 +34,4 @@ public class ReturnDetails extends AdminAudit implements Serializable {
     @Column(name = "qty",nullable = false)
     private BigDecimal qty;
 
-    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
-    @JoinColumn(name = "returns_by_item_id",referencedColumnName = "id")
-    private ReturnsByItemDetails returnsByItemDetails;
-
 }

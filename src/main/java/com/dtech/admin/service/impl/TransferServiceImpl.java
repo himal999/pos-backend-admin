@@ -67,8 +67,12 @@ public class TransferServiceImpl implements TransferService {
                     .findAllByStatusNot(Status.DELETE).stream()
                     .map(st -> new SimpleBaseDTO(st.getCode(), st.getDescription())).toList();
 
+            List<SimpleBaseDTO> defaultStatus = Arrays.stream(Status.values())
+                    .filter(status -> !Status.DELETE.name().equals(status.name())).map(st -> new SimpleBaseDTO(st.name(), st.getDescription())).toList();
+
             responseMap.put("privileges", privileges);
             responseMap.put("locations", locations);
+            responseMap.put("defaultStatus", defaultStatus);
 
             return ResponseEntity.ok().body(responseUtil.success(responseMap, messageSource.getMessage(ResponseMessageUtil.REFERENCE_DATA_RETRIEVED_SUCCESS, new Object[]{WebPage.TRNP.name()}, locale)));
         } catch (Exception e) {
