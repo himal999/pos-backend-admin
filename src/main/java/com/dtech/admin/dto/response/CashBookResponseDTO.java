@@ -8,9 +8,11 @@ import java.util.List;
 @Data
 public class CashBookResponseDTO {
     private List<SalesResponseDTO> sales;
+    private List<SalesResponseDTO> creditSales;
     private List<SalesReturnsResponseDTO> returns;
     private List<SalesInOutResponseDTO> inOuts;
     private BigDecimal totalSales;
+    private BigDecimal totalCreditSales;
     private BigDecimal totalReturns;
     private BigDecimal totalCashIn;
     private BigDecimal totalCashOut;
