@@ -33,8 +33,23 @@ public interface StockRepository extends JpaRepository<Stock, Long> , JpaSpecifi
             @Param("status") Status status
     );
 
+    @Query(value = "SELECT s.* " +
+            "FROM stock s " +
+            "LEFT OUTER JOIN item i ON s.item_code = i.code " +
+            "LEFT OUTER JOIN location l ON s.location_code = l.code " +
+            "WHERE i.code = :code " +
+            "  AND s.status != :status " +
+            "  AND (" +
+            "      (l.location_type = 'WAREHOUSE') " +
+            "      OR (l.location_type != 'WAREHOUSE' AND s.qty > 0) " +
+            "  )",
+            nativeQuery = true
+    )
+    List<Stock> findAllByItemCodeAndStatusNotNative(
+            @Param("code") String code,
+            @Param("status") Status status
+    );
 
-    List<Stock> findAllByItem_CodeAndStatusNot(String code, Status status);
     List<Stock> findAllByStatus(Status status);
     List<Stock> findAllByItemAndLocationAndStatus(Item item, Location location,Status status);
     Optional<Stock> findAllByIdAndStatusNot(Long id, Status status);

@@ -102,6 +102,7 @@ public class CashBookServiceImpl implements CashBookService {
             BigDecimal grandTotalReturns = BigDecimal.ZERO;
             BigDecimal grandTotalCashIn = BigDecimal.ZERO;
             BigDecimal grandTotalCashOut = BigDecimal.ZERO;
+            BigDecimal grandTotalCreditSales = BigDecimal.ZERO;
 
             Date fromDate = DateTimeUtil.getStartOfDay(cashierBalanceRequestDTO.getFromDate());
             Date toDate = DateTimeUtil.getEndOfDay(cashierBalanceRequestDTO.getToDate());
@@ -117,6 +118,7 @@ public class CashBookServiceImpl implements CashBookService {
                 Map<String, Object> cashierMap = new HashMap<>();
 
                 BigDecimal locationTotalSales = BigDecimal.ZERO;
+                BigDecimal locationTotalCreditSales = BigDecimal.ZERO;
                 BigDecimal locationTotalReturns = BigDecimal.ZERO;
                 BigDecimal locationTotalCashIn = BigDecimal.ZERO;
                 BigDecimal locationTotalCashOut = BigDecimal.ZERO;
@@ -126,16 +128,28 @@ public class CashBookServiceImpl implements CashBookService {
 
                     CashBookResponseDTO cashBookResponseDTO = new CashBookResponseDTO();
 
-                    List<Billing> billings = billingRepository.findByCashierUserAndCreatedDateBetween(cashierUser, fromDate, toDate);
+                    List<Billing> billings = billingRepository.findByCashierUserAndCreatedDateBetweenAndStatus(cashierUser, fromDate, toDate,Status.ACTIVE);
                     log.info("Found {} billings for cashier {}", billings.size(), cashierUser.getUsername());
 
                     final BigDecimal[] totalSales = {BigDecimal.ZERO};
-                    List<SalesResponseDTO> salesList = billings.stream().map(billing -> {
+                    final BigDecimal[] totalCreditSales = {BigDecimal.ZERO};
+
+                    List<SalesResponseDTO> salesList = new ArrayList<>();
+                    List<SalesResponseDTO> creditSalesList = new ArrayList<>();
+
+                    billings.forEach(billing -> {
+
                         SalesResponseDTO dto = new SalesResponseDTO();
                         dto.setId(billing.getId());
                         dto.setInvoiceNumber(billing.getInvoiceNumber());
-                        dto.setPaymentType(billing.getPaymentType().name());
-                        dto.setPaymentTypeDescription(billing.getPaymentType().getDescription());
+                        dto.setPaymentType(billing.getPaymentCategory().name());
+                        dto.setPaymentTypeDescription(billing.getPaymentCategory().getDescription());
+
+                        dto.setSalesType(billing.getSalesType().name());
+                        dto.setSalesTypeDescription(SalesType.valueOf(billing.getSalesType().name()).getDescription());
+                        dto.setTotalAmount(billing.getTotalAmount());
+                        dto.setPayAmount(billing.getPayAmount());
+                        dto.setRemark(billing.getRemark());
 
                         if(billing.getCustomer() != null){
                             CustomerResponseDTO customer = new CustomerResponseDTO();
@@ -147,19 +161,22 @@ public class CashBookServiceImpl implements CashBookService {
                             dto.setCustomer(customer);
                         }
 
-                        dto.setSalesType(billing.getSalesType().name());
-                        dto.setSalesTypeDescription(SalesType.valueOf(billing.getSalesType().name()).getDescription());
-                        dto.setTotalAmount(billing.getTotalAmount());
-                        dto.setPayAmount(billing.getPayAmount());
-                        dto.setRemark(billing.getRemark());
+                        if(billing.getPaymentCategory().equals(PaymentCategory.CREDIT)){
+                            log.info("Credit payment");
+                            creditSalesList.add(dto);
+                            totalCreditSales[0] = totalCreditSales[0].add(billing.getTotalAmount() != null ? billing.getTotalAmount() : BigDecimal.ZERO);
+                        }else{
+                            log.info("Debit payment");
+                            salesList.add(dto);
+                            totalSales[0] = totalSales[0].add(billing.getTotalAmount() != null ? billing.getTotalAmount() : BigDecimal.ZERO);
+                        }
 
-                        totalSales[0] = totalSales[0].add(billing.getTotalAmount() != null ? billing.getTotalAmount() : BigDecimal.ZERO);
-                        return dto;
-                    }).toList();
+                    });
                     cashBookResponseDTO.setSales(salesList);
+                    cashBookResponseDTO.setCreditSales(creditSalesList);
                     log.info("Total sales for cashier {}: {}", cashierUser.getUsername(), totalSales[0]);
 
-                    List<Returns> returns = returnsRepository.findByCashierUserAndCreatedDateBetween(cashierUser, fromDate, toDate);
+                    List<Returns> returns = returnsRepository.findByCashierUserAndCreatedDateBetweenAndStatus(cashierUser, fromDate, toDate,Status.ACTIVE);
                     log.info("Found {} returns for cashier {}", returns.size(), cashierUser.getUsername());
 
                     final BigDecimal[] totalReturns = {BigDecimal.ZERO};
@@ -187,7 +204,7 @@ public class CashBookServiceImpl implements CashBookService {
                     cashBookResponseDTO.setReturns(returnsList);
                     log.info("Total returns for cashier {}: {}", cashierUser.getUsername(), totalReturns[0]);
 
-                    List<CashInOut> cashInOuts = cashInOutRepository.findByCashierUserAndCreatedDateBetween(cashierUser, fromDate, toDate);
+                    List<CashInOut> cashInOuts = cashInOutRepository.findByCashierUserAndCreatedDateBetweenAndStatus(cashierUser, fromDate, toDate,Status.ACTIVE);
                     log.info("Found {} cash in/out transactions for cashier {}", cashInOuts.size(), cashierUser.getUsername());
 
                     final BigDecimal[] totalCashIn = {BigDecimal.ZERO};
@@ -245,6 +262,7 @@ public class CashBookServiceImpl implements CashBookService {
                     BigDecimal balanceAmount = balance.subtract(totalCashierBalance[0]);
 
                     cashBookResponseDTO.setTotalSales(totalSales[0]);
+                    cashBookResponseDTO.setTotalCreditSales(totalCreditSales[0]);
                     cashBookResponseDTO.setTotalReturns(totalReturns[0]);
                     cashBookResponseDTO.setTotalCashIn(totalCashIn[0]);
                     cashBookResponseDTO.setTotalCashOut(totalCashOut[0]);
@@ -267,6 +285,7 @@ public class CashBookServiceImpl implements CashBookService {
                     log.info("Cashier {} summary - Sales: {}, Returns: {}, CashIn: {}, CashOut: {}, Balance: {}", cashierUser.getUsername(), totalSales[0], totalReturns[0], totalCashIn[0], totalCashOut[0], balance);
 
                     locationTotalSales = locationTotalSales.add(totalSales[0]);
+                    locationTotalCreditSales = locationTotalCreditSales.add(totalCreditSales[0]);
                     locationTotalReturns = locationTotalReturns.add(totalReturns[0]);
                     locationTotalCashIn = locationTotalCashIn.add(totalCashIn[0]);
                     locationTotalCashOut = locationTotalCashOut.add(totalCashOut[0]);
@@ -279,6 +298,7 @@ public class CashBookServiceImpl implements CashBookService {
 
                 Map<String, Object> summaryMap = new HashMap<>();
                 summaryMap.put("totalSales", locationTotalSales);
+                summaryMap.put("totalCreditSales", locationTotalCreditSales);
                 summaryMap.put("totalReturns", locationTotalReturns);
                 summaryMap.put("totalCashIn", locationTotalCashIn);
                 summaryMap.put("totalCashOut", locationTotalCashOut);
@@ -287,6 +307,7 @@ public class CashBookServiceImpl implements CashBookService {
                 log.info("Location {} summary - Sales: {}, Returns: {}, CashIn: {}, CashOut: {}, Balance: {}", location.getCode(), locationTotalSales, locationTotalReturns, locationTotalCashIn, locationTotalCashOut, locationBalance);
 
                 grandTotalSales = grandTotalSales.add(locationTotalSales);
+                grandTotalCreditSales = grandTotalCreditSales.add(locationTotalCreditSales);
                 grandTotalReturns = grandTotalReturns.add(locationTotalReturns);
                 grandTotalCashIn = grandTotalCashIn.add(locationTotalCashIn);
                 grandTotalCashOut = grandTotalCashOut.add(locationTotalCashOut);
@@ -301,6 +322,7 @@ public class CashBookServiceImpl implements CashBookService {
 
             Map<String, Object> grandSummary = new HashMap<>();
             grandSummary.put("totalSales", grandTotalSales);
+            grandSummary.put("totalCreditSales", grandTotalCreditSales);
             grandSummary.put("totalReturns", grandTotalReturns);
             grandSummary.put("totalCashIn", grandTotalCashIn);
             grandSummary.put("totalCashOut", grandTotalCashOut);
@@ -332,7 +354,7 @@ public class CashBookServiceImpl implements CashBookService {
                 return billingRepository.findByInvoiceNumber(cashierBalanceRequestDTO.getInvoiceNumber()).map(mdb -> {
                     log.info("Billing found with ID: {}", mdb.getId());
 
-                    List<BillingDetail> billingDetails = mdb.getBillingDetails();
+                    List<BillingDetail> billingDetails = mdb.getBillingDetailList();
                     log.info("Found {} billing detail(s) for invoice {}", billingDetails.size(), cashierBalanceRequestDTO.getInvoiceNumber());
 
                     List<SalesDetailsResponseDTO> items = billingDetails.stream().map(bd -> {
@@ -399,8 +421,10 @@ public class CashBookServiceImpl implements CashBookService {
                     List<SalesReturnsDetailsResponseDTO> responseList = returnDetails.stream().map(rd -> {
                         SalesReturnsDetailsResponseDTO dto = new SalesReturnsDetailsResponseDTO();
                         dto.setId(rd.getId());
-                        dto.setItemCode(rd.getBillingDetail().getStock().getItem().getCode());
-                        dto.setItemName(rd.getBillingDetail().getStock().getItem().getDescription());
+                        dto.setItemCode(rd.getBillingDetail() != null ? rd.getBillingDetail().getStock().getItem().getCode() : rd.getReturnsByItemDetails().getCode());
+                        dto.setItemName(rd.getBillingDetail() != null ? rd.getBillingDetail().getStock().getItem().getDescription() : rd.getReturnsByItemDetails().getDescription());
+                        dto.setItemName(rd.getBillingDetail() != null ? rd.getBillingDetail().getStock().getItem().getDescription() : rd.getReturnsByItemDetails().getDescription());
+                        dto.setSalesPrice(rd.getBillingDetail() != null ? rd.getBillingDetail().getSalesPrice() : rd.getReturnsByItemDetails().getSalesPrice());
                         dto.setQty(rd.getQty());
                         return dto;
                     }).toList();
@@ -532,7 +556,7 @@ public class CashBookServiceImpl implements CashBookService {
                     billing.setStatus(Status.DELETE);
                     billingRepository.saveAndFlush(billing);
 
-                    List<Stock> updatedStock = billing.getBillingDetails().stream().map(billingDetail -> {
+                    List<Stock> updatedStock = billing.getBillingDetailList().stream().map(billingDetail -> {
                         log.info("Update stock {}", billingDetail.getStock().getId());
                         billingDetail.getStock().setQty(billingDetail.getStock().getQty().add(billingDetail.getQty()));
                         return billingDetail.getStock();

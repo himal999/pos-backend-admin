@@ -268,7 +268,7 @@ public class GRNServiceImpl implements GRNService {
         try {
             log.info("GRN view request process {}", grnRequestItemDTO);
 
-            List<Stock> stocks = stockRepository.findAllByItem_CodeAndStatusNot(grnRequestItemDTO.getItemCode(), Status.DELETE);
+            List<Stock> stocks = stockRepository.findAllByItemCodeAndStatusNotNative(grnRequestItemDTO.getItemCode(), Status.DELETE);
 
             log.info("Start mapper process");
             List<ItemGRNResponseDTO> itemGRNResponseDTOS = stocks.stream()

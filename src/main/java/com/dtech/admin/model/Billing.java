@@ -1,7 +1,11 @@
 package com.dtech.admin.model;
 
+import com.dtech.admin.enums.PaymentCategory;
 import com.dtech.admin.enums.PaymentType;
 import com.dtech.admin.enums.SalesType;
+import com.dtech.admin.enums.Status;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.dtech.admin.enums.Status;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -48,16 +52,26 @@ public class Billing extends AdminAudit implements Serializable {
     private SalesType salesType;
 
     @Column(name = "total_amount",nullable = false)
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER, pattern = "0.00")
     private BigDecimal totalAmount;
 
     @Column(name = "pay_amount",nullable = false)
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER, pattern = "0.00")
     private BigDecimal payAmount;
+
+    @Column(name = "actual_pay_amount",nullable = false)
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER, pattern = "0.00")
+    private BigDecimal actualPayAmount;
+
+    @Column(name = "payment_category",nullable = false)
+    @Enumerated(EnumType.STRING)
+    private PaymentCategory paymentCategory;
 
     @Column(name = "remark",nullable = false)
     private String remark;
 
-    @OneToMany(fetch = FetchType.LAZY,mappedBy = "billing")
-    List<BillingDetail> billingDetails;
+    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "billing")
+    private List<BillingDetail> billingDetailList;
 
     @Column(name = "status",nullable = false)
     @Enumerated(EnumType.STRING)

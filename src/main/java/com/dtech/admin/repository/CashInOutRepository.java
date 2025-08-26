@@ -1,4 +1,5 @@
 package com.dtech.admin.repository;
+import com.dtech.admin.enums.Status;
 import com.dtech.admin.model.CashInOut;
 import com.dtech.admin.model.CashierUser;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,5 +10,5 @@ import java.util.List;
 
 @Repository
 public interface CashInOutRepository extends JpaRepository<CashInOut, Long> {
-    List<CashInOut> findByCashierUserAndCreatedDateBetween(CashierUser cashierUser, Date from, Date to);
+    List<CashInOut> findByCashierUserAndCreatedDateBetweenAndStatus(CashierUser cashierUser, Date from, Date to, Status status);
 }

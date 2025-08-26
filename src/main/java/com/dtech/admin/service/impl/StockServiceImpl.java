@@ -110,8 +110,6 @@ public class StockServiceImpl implements StockService {
                     stockRepository.count(StockSpecification.getSpecification(paginationRequest.getSearch())) :
                     stockRepository.count(StockSpecification.getSpecification());
             log.info("Stock filter records map start");
-            List<Item>
-            stocks.stream().map()
             List<StockResponseDTO> responseDTOList = stocks.stream()
                     .map(StockMapper::mapStockMapper).toList();
             log.info("Stock filter records map finish");

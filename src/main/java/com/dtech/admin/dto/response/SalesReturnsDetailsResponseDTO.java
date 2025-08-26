@@ -11,4 +11,5 @@ public class SalesReturnsDetailsResponseDTO {
     private BigDecimal qty;
     private String itemCode;
     private String itemName;
+    private BigDecimal salesPrice;
 }

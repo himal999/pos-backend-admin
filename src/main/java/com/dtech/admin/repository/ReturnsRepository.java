@@ -1,5 +1,6 @@
 package com.dtech.admin.repository;
 
+import com.dtech.admin.enums.Status;
 import com.dtech.admin.model.CashierUser;
 import com.dtech.admin.model.Returns;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,6 +12,6 @@ import java.util.Optional;
 
 @Repository
 public interface ReturnsRepository extends JpaRepository<Returns, Long> {
-    List<Returns> findByCashierUserAndCreatedDateBetween(CashierUser cashierUser, Date from, Date to);
+    List<Returns> findByCashierUserAndCreatedDateBetweenAndStatus(CashierUser cashierUser, Date from, Date to, Status status);
     Optional<Returns> findByReturnsInvoice(String invoiceNumber);
 }
