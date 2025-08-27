@@ -188,5 +188,9 @@ public class ResponseMessageUtil {
     public final static String CASHIER_USER_NOT_FOUND = "val.cashier.user.not.found";
     public static final String CASH_IN_OUT_ADDED_SUCCESSFULLY = "val.cash.in.out.added.success";
 
-
+    /*GRN history*/
+    public final static String GRN_HISTORY_FILTER_LIST_SUCCESS = "val.grn.history.filter.list.success";
+    public final static String GRN_HISTORY_NOT_FOUND_BY_ID = "val.grn.history.not.found.by.id";
+    public final static String GRN_HISTORY_FOUND_BY_ID = "val.grn.history.found.by.id";
+    public final static String GRN_HISTORY_UPDATE_SUCCESS = "val.grn.history.update.success";
 }

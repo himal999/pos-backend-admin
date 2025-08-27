@@ -1,10 +1,8 @@
 package com.dtech.admin.specifications;
 
-import com.dtech.admin.dto.search.StockSearchDTO;
+import com.dtech.admin.dto.search.GRNHistorySearchDTO;
 import com.dtech.admin.enums.Status;
-import com.dtech.admin.model.Item;
-import com.dtech.admin.model.Location;
-import com.dtech.admin.model.Stock;
+import com.dtech.admin.model.*;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
@@ -18,21 +16,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Log4j2
-public class StockSpecification {
+public class GRNHistorySpecification {
+    public static Specification<GRNHistory> getSpecification(GRNHistorySearchDTO filterDto) {
 
-    public static Specification<Stock> getSpecification(StockSearchDTO filterDto) {
-
-        log.info("Stack filter: " + filterDto);
+        log.info("GRN History filter: " + filterDto);
 
         return (root, query,criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            Join<Stock, Location> locationJoin = root.join("location", JoinType.LEFT);
-            Join<Stock, Item> itemJoin = root.join("item", JoinType.LEFT);
-
-            if (filterDto.getLocation() != null && !filterDto.getLocation().isEmpty()) {
-                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(locationJoin.get("description")), "%" + filterDto.getLocation().toLowerCase() + "%"));
-            }
+            Join<GRNHistory, GRNItemHistory> itemHistoryJoin = root.join("itemGRNS", JoinType.LEFT);
+            Join<GRNHistory, Location> locationJoin = root.join("location", JoinType.LEFT);
+            Join<GRNHistory, Supplier> supplierJoin = root.join("supplier", JoinType.LEFT);
+            Join<GRNItemHistory, Item> itemJoin = itemHistoryJoin.join("item", JoinType.LEFT);
 
             if (filterDto.getItemCode() != null && !filterDto.getItemCode().isEmpty()) {
                 predicates.add(criteriaBuilder.like(criteriaBuilder.lower(itemJoin.get("code")), "%" + filterDto.getItemCode().toLowerCase() + "%"));
@@ -42,8 +37,16 @@ public class StockSpecification {
                 predicates.add(criteriaBuilder.like(criteriaBuilder.lower(itemJoin.get("description")), "%" + filterDto.getItemDescription().toLowerCase() + "%"));
             }
 
-            if (filterDto.getQty() != null &&  !filterDto.getQty().isEmpty()) {
-                predicates.add(criteriaBuilder.equal(root.get("qty"), filterDto.getQty()));
+            if (filterDto.getLocationCode() != null &&  !filterDto.getLocationCode().isEmpty()) {
+                predicates.add(criteriaBuilder.equal(locationJoin.get("code"), filterDto.getLocationCode()));
+            }
+
+            if (filterDto.getSupplierId() != null) {
+                predicates.add(criteriaBuilder.equal(supplierJoin.get("id"), filterDto.getSupplierId()));
+            }
+
+            if (filterDto.getStatus() != null &&  !filterDto.getStatus().isEmpty()) {
+                predicates.add(criteriaBuilder.equal(root.get("status"), filterDto.getStatus()));
             }
 
             if (filterDto.getQtyOperator() != null && !filterDto.getQtyOperator().isEmpty()) {
@@ -83,9 +86,9 @@ public class StockSpecification {
         };
     }
 
-    public static Specification<Stock> getSpecification() {
-        log.info("Stock filter default :");
-        return (root, query,criteriaBuilder) -> {
+    public static Specification<GRNHistory> getSpecification() {
+        log.info("GRN history filter default :");
+        return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(criteriaBuilder.not(criteriaBuilder.equal(root.get("status"), Status.DELETE)));
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
