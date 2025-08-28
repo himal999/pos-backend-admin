@@ -21,4 +21,5 @@ public enum WebPage {
     TRMP, //Item transfer management
     TRNP, //Transfer management
     CABM, //Cash book management
+    CUSM, //Customer management
 }

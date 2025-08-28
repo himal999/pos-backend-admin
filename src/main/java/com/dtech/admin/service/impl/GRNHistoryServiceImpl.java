@@ -9,6 +9,7 @@ import com.dtech.admin.dto.request.PaginationRequest;
 import com.dtech.admin.dto.response.*;
 import com.dtech.admin.dto.search.GRNHistorySearchDTO;
 import com.dtech.admin.enums.Status;
+import com.dtech.admin.enums.Title;
 import com.dtech.admin.enums.WebPage;
 import com.dtech.admin.mapper.entityToDto.GRNHistoryMapper;
 import com.dtech.admin.model.GRNHistory;
@@ -78,10 +79,15 @@ public class GRNHistoryServiceImpl implements GRNHistoryService {
                     .findAllByStatusNot(Status.DELETE).stream()
                     .map(st -> new SimpleBaseDTO(st.getCode(), st.getDescription())).toList();
 
+            List<SimpleBaseDTO> supplierList = supplierRepository
+                    .findAllByStatusNot(Status.DELETE).stream()
+                    .map(st -> new SimpleBaseDTO(String.valueOf(st.getId()), Title.valueOf(st.getTitle().name()) + "." + st.getFirstName()+" "+st.getLastName())).toList();
+
             responseMap.put("privileges", privileges);
             responseMap.put("locations", locations);
             responseMap.put("measure", measure);
             responseMap.put("defaultStatus", defaultStatus);
+            responseMap.put("suppliers", supplierList);
 
             return ResponseEntity.ok().body(responseUtil.success(responseMap,
                     messageSource.getMessage(ResponseMessageUtil.REFERENCE_DATA_RETRIEVED_SUCCESS,

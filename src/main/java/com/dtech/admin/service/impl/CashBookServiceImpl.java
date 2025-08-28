@@ -596,12 +596,12 @@ public class CashBookServiceImpl implements CashBookService {
                                 if (returnDetails.getBillingDetail() != null) {
                                     log.info("Billing Detail {}", returnDetails.getBillingDetail().getId());
                                     Stock stock = returnDetails.getBillingDetail().getStock();
-                                    stock.setQty(stock.getQty().add(returnDetails.getQty()));
+                                    stock.setQty(stock.getQty().subtract(returnDetails.getQty()));
                                     return stock;
                                 } else if (returnDetails.getReturnsByItemDetails() != null) {
                                     log.info("Returns by item {}", returnDetails.getReturnsByItemDetails().getId());
                                     Stock stock = returnDetails.getReturnsByItemDetails().getStock();
-                                    stock.setQty(stock.getQty().add(returnDetails.getQty()));
+                                    stock.setQty(stock.getQty().subtract(returnDetails.getQty()));
                                     return stock;
                                 } else {
                                     log.info("No BillingDetail or ReturnsByItemDetails for return detail {}", returnDetails.getId());

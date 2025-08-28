@@ -193,4 +193,12 @@ public class ResponseMessageUtil {
     public final static String GRN_HISTORY_NOT_FOUND_BY_ID = "val.grn.history.not.found.by.id";
     public final static String GRN_HISTORY_FOUND_BY_ID = "val.grn.history.found.by.id";
     public final static String GRN_HISTORY_UPDATE_SUCCESS = "val.grn.history.update.success";
+
+    /*Brand*/
+    public final static String CUSTOMER_FILTER_LIST_SUCCESS = "val.customer.filter.list.success";
+    public final static String CUSTOMER_BILLING_FILTER_LIST_SUCCESS = "val.customer.billing.filter.list.success";
+    public final static String CUSTOMER_PAYMENT_HISTORY_FILTER_LIST_SUCCESS = "val.customer.payment.history.filter.list.success";
+    public final static String CUSTOMER_BILLING_ITEM_NOT_FOUND_BY_ID = "val.customer.billing.item.not.found.by.id";
+    public final static String CUSTOMER_NOT_FOUND_BY_ID = "val.customer.not.found.by.id";
+    public final static String CUSTOMER_BILLING_ITEM_FOUND_BY_INVOICE_NUMBER = "val.customer.billing.item.found.by.invoice.number";
 }

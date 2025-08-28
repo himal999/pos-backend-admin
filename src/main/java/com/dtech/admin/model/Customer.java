@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -34,14 +35,20 @@ public class Customer extends AdminAudit implements Serializable {
     @Column(name = "city",nullable = false)
     private String city;
 
-    @Column(name = "mobile")
-    private String telNo;
+    @Column(name = "mobile",nullable = false)
+    private String mobile;
 
     @Column(name = "email")
     private String email;
 
+    @Column(name = "credit_limit",nullable = false)
+    private BigDecimal creditLimit = BigDecimal.valueOf(100000);
+
     @Column(name = "status",nullable = false)
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private Status status = Status.ACTIVE;
+
+    @Column(name = "pending_balance",nullable = false)
+    private BigDecimal pendingBalance = BigDecimal.ZERO;
 
 }
