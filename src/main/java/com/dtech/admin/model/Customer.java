@@ -48,6 +48,9 @@ public class Customer extends AdminAudit implements Serializable {
     @Enumerated(EnumType.STRING)
     private Status status = Status.ACTIVE;
 
+    @Column(name = "is_active_credit",nullable = false)
+    private Boolean isActiveCredit = true;
+
     @Column(name = "pending_balance",nullable = false)
     private BigDecimal pendingBalance = BigDecimal.ZERO;
 

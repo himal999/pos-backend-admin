@@ -12,7 +12,11 @@ import java.util.Locale;
 public interface CustomerService {
     ResponseEntity<ApiResponse<Object>> getReferenceDate(ChannelRequestDTO channelRequestDTO, Locale locale);
     ResponseEntity<ApiResponse<Object>> filterList(PaginationRequest<CustomerSearchDTO> paginationRequest, Locale locale);
-    ResponseEntity<ApiResponse<Object>> billingHistory(CustomerRequestDTO customerRequestDTO, Locale locale);
+    ResponseEntity<ApiResponse<Object>> billingHistory(PaginationRequest<CustomerSearchDTO> paginationRequest, Locale locale);
     ResponseEntity<ApiResponse<Object>> billingItemDetails(CustomerRequestDTO customerRequestDTO, Locale locale);
-    ResponseEntity<ApiResponse<Object>> settlePaymentHistory(CustomerRequestDTO customerRequestDTO, Locale locale);
+    ResponseEntity<ApiResponse<Object>> settlePaymentHistory(PaginationRequest<CustomerSearchDTO> paginationRequest, Locale locale);
+    ResponseEntity<ApiResponse<Object>> basicEditInfo(CustomerRequestDTO customerRequestDTO, Locale locale);
+    ResponseEntity<ApiResponse<Object>> creditLimitUpdate(CustomerRequestDTO customerRequestDTO, Locale locale);
+    ResponseEntity<ApiResponse<Object>> customerPermanentRemove(CustomerRequestDTO customerRequestDTO, Locale locale);
+    ResponseEntity<ApiResponse<Object>> customerCashCreditBillingUpdate(CustomerRequestDTO customerRequestDTO, Locale locale);
 }

@@ -29,7 +29,7 @@ import lombok.Data;
                 "RESET_PASSWORD",
                 "LOGOUT",
                 "ITEM_SEQUENCE"
-        }, required = {"username"}, message = "Username is required.")
+        }, required = {"username"}, message = "Username is required")
 public class ChannelRequestValidatorDTO {
     @NotBlank(message = "IP is required.")
     private String ip;

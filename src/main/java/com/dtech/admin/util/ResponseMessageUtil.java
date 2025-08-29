@@ -194,11 +194,22 @@ public class ResponseMessageUtil {
     public final static String GRN_HISTORY_FOUND_BY_ID = "val.grn.history.found.by.id";
     public final static String GRN_HISTORY_UPDATE_SUCCESS = "val.grn.history.update.success";
 
-    /*Brand*/
+    /*Customer*/
     public final static String CUSTOMER_FILTER_LIST_SUCCESS = "val.customer.filter.list.success";
     public final static String CUSTOMER_BILLING_FILTER_LIST_SUCCESS = "val.customer.billing.filter.list.success";
     public final static String CUSTOMER_PAYMENT_HISTORY_FILTER_LIST_SUCCESS = "val.customer.payment.history.filter.list.success";
     public final static String CUSTOMER_BILLING_ITEM_NOT_FOUND_BY_ID = "val.customer.billing.item.not.found.by.id";
     public final static String CUSTOMER_NOT_FOUND_BY_ID = "val.customer.not.found.by.id";
     public final static String CUSTOMER_BILLING_ITEM_FOUND_BY_INVOICE_NUMBER = "val.customer.billing.item.found.by.invoice.number";
+    public final static String CUSTOMER_DETAILS_NOT_CHAINING = "val.customer.details.not.chaining";
+    public final static String CUSTOMER_MOBILE_NUMBER_ALREADY_EXISTS = "val.customer.mobile.number.already.exists";
+    public final static String CUSTOMER_DETAILS_UPDATE_SUCCESS = "val.customer.details.update.success";
+    public final static String CUSTOMER_CREDIT_LIMIT_NOT_CHAINING = "val.customer.credit.limit.not.chaining";
+    public final static String CUSTOMER_CREDIT_LIMIT_LESS_THAN_PENDING_BALANCE = "val.customer.limit.less.than.pending.balance";
+    public final static String CUSTOMER_CREDIT_LIMIT_UPDATE_SUCCESS = "val.customer.limit.update.success";
+    public static final String CUSTOMER_DELETE_PENDING_BALANCE_EXISTS = "val.customer.delete.pending.balance.exists";
+    public static final String CUSTOMER_DELETE_SUCCESS = "val.customer.delete.success";
+    public static final String CUSTOMER_CREDIT_CASH_ALREADY_EXISTS = "val.customer.credit.cash.already.exists";
+    public static final String CUSTOMER_CREDIT_CASH_UPDATE_SUCCESS = "val.customer.credit.cash.update.success";
+
 }

@@ -177,7 +177,7 @@ public class GRNHistoryServiceImpl implements GRNHistoryService {
 
                             if (oldModel.equals(newModel)) {
                                 log.info("GRN history update status not changed to {}", newModel);
-                                return ResponseEntity.ok().body(responseUtil.error(null, 1032, messageSource.getMessage(ResponseMessageUtil.STOCK_VALUES_NOT_CHANGING, null, locale)));
+                                return ResponseEntity.ok().body(responseUtil.error(null, 1032, messageSource.getMessage(ResponseMessageUtil.VALUES_NOT_CHANGING, null, locale)));
                             }
 
                             log.info("Stock update status changed to {} ", supplier.getId().toString());

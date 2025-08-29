@@ -117,19 +117,19 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse<Object>> billingHistory(CustomerRequestDTO customerRequestDTO, Locale locale) {
+    public ResponseEntity<ApiResponse<Object>> billingHistory(PaginationRequest<CustomerSearchDTO> paginationRequest, Locale locale) {
         try {
 
-            log.info("Customer view data customer {} ", customerRequestDTO);
-            return customerRepository.findByIdAndStatusNot(customerRequestDTO.getId(), Status.DELETE).map(cus -> {
+            log.info("Customer view data customer {} ", paginationRequest);
+            return customerRepository.findByIdAndStatusNot(paginationRequest.getId(), Status.DELETE).map(cus -> {
 
-                Pageable pageable = PaginationUtil.getPageable(customerRequestDTO);
-                Page<Billing> billings = Objects.nonNull(customerRequestDTO.getSearch()) ?
-                        billingRepository.findAll(BillingSpecification.getSpecification(customerRequestDTO.getSearch(), cus), pageable) :
+                Pageable pageable = PaginationUtil.getPageable(paginationRequest);
+                Page<Billing> billings = Objects.nonNull(paginationRequest.getSearch()) ?
+                        billingRepository.findAll(BillingSpecification.getSpecification(paginationRequest.getSearch(), cus), pageable) :
                         billingRepository.findAll(BillingSpecification.getSpecification(cus), pageable);
                 log.info("Billing filter records {}", billings);
-                long totalElements = Objects.nonNull(customerRequestDTO.getSearch()) ?
-                        billingRepository.count(BillingSpecification.getSpecification(customerRequestDTO.getSearch(), cus)) :
+                long totalElements = Objects.nonNull(paginationRequest.getSearch()) ?
+                        billingRepository.count(BillingSpecification.getSpecification(paginationRequest.getSearch(), cus)) :
                         billingRepository.count(BillingSpecification.getSpecification(cus));
 
                 List<BillingResponseDTO> billingResponseDTOS = billings.stream()
@@ -150,14 +150,14 @@ public class CustomerServiceImpl implements CustomerService {
                                 null, locale)));
 
             }).orElseGet(() -> {
-                log.info("Customer not found data customer {} ", customerRequestDTO.getId());
+                log.info("Customer not found data customer {} ", paginationRequest.getId());
                 return ResponseEntity.ok().body(
                         responseUtil.error(
                                 null,
                                 1044,
                                 messageSource.getMessage(
                                         ResponseMessageUtil.CUSTOMER_NOT_FOUND_BY_ID,
-                                        new Object[]{customerRequestDTO.getId()},
+                                        new Object[]{paginationRequest.getId()},
                                         locale
                                 )
                         )
@@ -215,29 +215,153 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse<Object>> settlePaymentHistory(CustomerRequestDTO customerRequestDTO, Locale locale) {
+    public ResponseEntity<ApiResponse<Object>> settlePaymentHistory(PaginationRequest<CustomerSearchDTO> paginationRequest, Locale locale) {
         try {
-            log.info("Customer settlement payment history data customer {} ", customerRequestDTO);
+            log.info("Customer settlement payment history data customer {} ", paginationRequest);
 
-            return customerRepository.findByIdAndStatusNot(customerRequestDTO.getId(), Status.DELETE).map(cus -> {
+            return customerRepository.findByIdAndStatusNot(paginationRequest.getId(), Status.DELETE).map(cus -> {
 
-                Pageable pageable = PaginationUtil.getPageable(customerRequestDTO);
-                Page<CustomerPaymentHistory> customerPaymentHistories = Objects.nonNull(customerRequestDTO.getSearch()) ?
-                        customerPaymentHistoryRepository.findAll(CustomerPaymentHistorySpecification.getSpecification(customerRequestDTO.getSearch(), cus), pageable) :
-                        customerPaymentHistoryRepository.findAll(CustomerPaymentHistorySpecification.getSpecification(cus),pageable);
+                Pageable pageable = PaginationUtil.getPageable(paginationRequest);
+                Page<CustomerPaymentHistory> customerPaymentHistories = Objects.nonNull(paginationRequest.getSearch()) ?
+                        customerPaymentHistoryRepository.findAll(CustomerPaymentHistorySpecification.getSpecification(paginationRequest.getSearch(), cus), pageable) :
+                        customerPaymentHistoryRepository.findAll(CustomerPaymentHistorySpecification.getSpecification(cus), pageable);
 
                 log.info("Customer payment history filter records {}", customerPaymentHistories);
-                long totalElements = Objects.nonNull(customerRequestDTO.getSearch()) ?
-                        customerPaymentHistoryRepository.count(CustomerPaymentHistorySpecification.getSpecification(customerRequestDTO.getSearch(), cus)) :
+                long totalElements = Objects.nonNull(paginationRequest.getSearch()) ?
+                        customerPaymentHistoryRepository.count(CustomerPaymentHistorySpecification.getSpecification(paginationRequest.getSearch(), cus)) :
                         customerPaymentHistoryRepository.count(CustomerPaymentHistorySpecification.getSpecification(cus));
 
                 List<CustomerPaymentHistoryResponseDTO> customerPaymentHistoryResponseDTOS = customerPaymentHistories.stream()
-                       .map(CustomerMapper::mapCustomerPaymentMapper).toList();
+                        .map(CustomerMapper::mapCustomerPaymentMapper).toList();
                 log.info("Customer payment history filter records map finish");
 
                 return ResponseEntity.ok().body(responseUtil.success((Object) new PagingResult<CustomerPaymentHistoryResponseDTO>(customerPaymentHistoryResponseDTOS, customerPaymentHistoryResponseDTOS.size(), totalElements),
                         messageSource.getMessage(ResponseMessageUtil.CUSTOMER_PAYMENT_HISTORY_FILTER_LIST_SUCCESS,
                                 null, locale)));
+
+            }).orElseGet(() -> {
+                log.info("Customer not found data customer {} ", paginationRequest.getId());
+                return ResponseEntity.ok().body(
+                        responseUtil.error(
+                                null,
+                                1044,
+                                messageSource.getMessage(
+                                        ResponseMessageUtil.CUSTOMER_NOT_FOUND_BY_ID,
+                                        new Object[]{paginationRequest.getId()},
+                                        locale
+                                )
+                        )
+                );
+            });
+
+        } catch (Exception e) {
+            log.error(e);
+            throw e;
+        }
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ApiResponse<Object>> basicEditInfo(CustomerRequestDTO customerRequestDTO, Locale locale) {
+        try {
+            log.info("Customer basic edit info data customer {} ", customerRequestDTO);
+
+            return customerRepository.findByIdAndStatusNot(customerRequestDTO.getId(), Status.DELETE).map(cus -> {
+
+                String newModel = new StringBuilder()
+                        .append(customerRequestDTO.getTitle())
+                        .append("|")
+                        .append(customerRequestDTO.getFirstName())
+                        .append("|")
+                        .append(customerRequestDTO.getLastName())
+                        .append("|")
+                        .append(customerRequestDTO.getCity())
+                        .append("|")
+                        .append(customerRequestDTO.getMobile())
+                        .append("|")
+                        .append(customerRequestDTO.getEmail()).toString();
+
+                String oldModel = new StringBuilder()
+                        .append(cus.getTitle().name())
+                        .append("|")
+                        .append(cus.getFirstName())
+                        .append("|")
+                        .append(cus.getLastName())
+                        .append("|")
+                        .append(cus.getCity())
+                        .append("|")
+                        .append(cus.getMobile())
+                        .append("|")
+                        .append(cus.getEmail()).toString();
+
+                if (oldModel.equals(newModel)) {
+                    log.info("Customer details not found {}", newModel);
+                    return ResponseEntity.ok().body(responseUtil.error(null, 1046, messageSource.getMessage(ResponseMessageUtil.CUSTOMER_DETAILS_NOT_CHAINING, null, locale)));
+                }
+
+                if (!customerRequestDTO.getMobile().equals(cus.getMobile())) {
+                    log.info("Customer mobile number changing not found {}", cus.getMobile());
+                    if (customerRepository.existsAllByMobileAndStatusNot(customerRequestDTO.getMobile(), Status.DELETE)) {
+                        log.info("Mobile number already exist {}", cus.getMobile());
+                        return ResponseEntity.ok().body(responseUtil.error(null, 1047, messageSource.getMessage(ResponseMessageUtil.CUSTOMER_MOBILE_NUMBER_ALREADY_EXISTS, new Object[]{customerRequestDTO.getMobile()}, locale)));
+                    }
+                }
+                log.info("Customer details mapper start");
+                com.dtech.admin.mapper.dtoToEntity.CustomerMapper.mapCustomerMapper(customerRequestDTO, cus);
+                log.info("Customer edit info data customer {} ", customerRequestDTO);
+
+                customerRepository.saveAndFlush(cus);
+
+                return ResponseEntity.ok().body(
+                        responseUtil.success(null,
+                                messageSource.getMessage(ResponseMessageUtil.CUSTOMER_DETAILS_UPDATE_SUCCESS,
+                                        new Object[]{cus.getFirstName() + " " + cus.getLastName()}, locale)));
+
+
+            }).orElseGet(() -> {
+                log.info("Customer not found data customer {} ", customerRequestDTO.getId());
+                return ResponseEntity.ok().body(
+                        responseUtil.error(
+                                null,
+                                1044,
+                                messageSource.getMessage(
+                                        ResponseMessageUtil.CUSTOMER_NOT_FOUND_BY_ID,
+                                        new Object[]{customerRequestDTO.getId()},
+                                        locale
+                                )
+                        )
+                );
+            });
+        } catch (Exception e) {
+            log.error(e);
+            throw e;
+        }
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ApiResponse<Object>> creditLimitUpdate(CustomerRequestDTO customerRequestDTO, Locale locale) {
+        try {
+            log.info("Customer credit limit update data customer {} ", customerRequestDTO.getCreditLimit());
+
+            return customerRepository.findByIdAndStatusNot(customerRequestDTO.getId(), Status.DELETE).map(cus -> {
+
+                if (customerRequestDTO.getCreditLimit().equals(cus.getCreditLimit())) {
+                    log.info("Customer credit limit changing not found {}", cus.getCreditLimit());
+                    return ResponseEntity.ok().body(responseUtil.error(null, 1048, messageSource.getMessage(ResponseMessageUtil.CUSTOMER_CREDIT_LIMIT_NOT_CHAINING, null, locale)));
+                } else if (customerRequestDTO.getCreditLimit().compareTo(cus.getPendingBalance()) < 0) {
+                    log.info("Credit limit can't be less than pending balance {}", cus.getPendingBalance());
+                    return ResponseEntity.ok().body(responseUtil.error(null, 1049, messageSource.getMessage(ResponseMessageUtil.CUSTOMER_CREDIT_LIMIT_LESS_THAN_PENDING_BALANCE, null, locale)));
+
+                }
+
+                cus.setCreditLimit(customerRequestDTO.getCreditLimit());
+                customerRepository.saveAndFlush(cus);
+
+                return ResponseEntity.ok().body(
+                        responseUtil.success(null,
+                                messageSource.getMessage(ResponseMessageUtil.CUSTOMER_CREDIT_LIMIT_UPDATE_SUCCESS,
+                                        new Object[]{cus.getFirstName() + " " + cus.getLastName()}, locale)));
 
             }).orElseGet(() -> {
                 log.info("Customer not found data customer {} ", customerRequestDTO.getId());
@@ -254,7 +378,90 @@ public class CustomerServiceImpl implements CustomerService {
                 );
             });
 
-            }catch (Exception e) {
+
+        } catch (Exception e) {
+            log.error(e);
+            throw e;
+        }
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ApiResponse<Object>> customerPermanentRemove(CustomerRequestDTO customerRequestDTO, Locale locale) {
+        try {
+            log.info("Customer permanent delete data customer {} ", customerRequestDTO.getId());
+
+            return customerRepository.findByIdAndStatusNot(customerRequestDTO.getId(), Status.DELETE).map(cus -> {
+
+                if (cus.getPendingBalance().compareTo(BigDecimal.ZERO) > 0) {
+                    log.info("Customer pending balance greater than 0  {}", cus.getPendingBalance());
+                    return ResponseEntity.ok().body(responseUtil.error(null, 1050, messageSource.getMessage(ResponseMessageUtil.CUSTOMER_DELETE_PENDING_BALANCE_EXISTS, null, locale)));
+                }
+
+                cus.setStatus(Status.DELETE);
+                customerRepository.saveAndFlush(cus);
+
+                return ResponseEntity.ok().body(
+                        responseUtil.success(null,
+                                messageSource.getMessage(ResponseMessageUtil.CUSTOMER_DELETE_SUCCESS,
+                                        new Object[]{cus.getFirstName() + " " + cus.getLastName()}, locale)));
+
+            }).orElseGet(() -> {
+                log.info("Customer not found data customer {} ", customerRequestDTO.getId());
+                return ResponseEntity.ok().body(
+                        responseUtil.error(
+                                null,
+                                1044,
+                                messageSource.getMessage(
+                                        ResponseMessageUtil.CUSTOMER_NOT_FOUND_BY_ID,
+                                        new Object[]{customerRequestDTO.getId()},
+                                        locale
+                                )
+                        )
+                );
+            });
+        } catch (Exception e) {
+            log.error(e);
+            throw e;
+        }
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ApiResponse<Object>> customerCashCreditBillingUpdate(CustomerRequestDTO customerRequestDTO, Locale locale) {
+        try {
+            log.info("Customer cash credit update data customer {} ", customerRequestDTO.getId());
+
+            return customerRepository.findByIdAndStatusNot(customerRequestDTO.getId(), Status.DELETE).map(cus -> {
+
+                if (cus.getIsActiveCredit() && customerRequestDTO.getIsActiveCredit()) {
+                    log.info("Customer cash credit update data customer {} ", customerRequestDTO.getId());
+                    return ResponseEntity.ok().body(responseUtil.error(null, 1051, messageSource.getMessage(ResponseMessageUtil.CUSTOMER_CREDIT_CASH_ALREADY_EXISTS, null, locale)));
+
+                }
+                cus.setIsActiveCredit(customerRequestDTO.getIsActiveCredit());
+                customerRepository.saveAndFlush(cus);
+
+                return ResponseEntity.ok().body(
+                        responseUtil.success(null,
+                                messageSource.getMessage(ResponseMessageUtil.CUSTOMER_CREDIT_CASH_UPDATE_SUCCESS,
+                                        new Object[]{cus.getFirstName() + " " + cus.getLastName()}, locale)));
+
+            }).orElseGet(() -> {
+                log.info("Customer not found data customer {} ", customerRequestDTO.getId());
+                return ResponseEntity.ok().body(
+                        responseUtil.error(
+                                null,
+                                1044,
+                                messageSource.getMessage(
+                                        ResponseMessageUtil.CUSTOMER_NOT_FOUND_BY_ID,
+                                        new Object[]{customerRequestDTO.getId()},
+                                        locale
+                                )
+                        )
+                );
+            });
+        } catch (Exception e) {
             log.error(e);
             throw e;
         }

@@ -12,4 +12,5 @@ import java.util.Optional;
 public interface CustomerRepository extends JpaRepository<Customer, Long> , JpaSpecificationExecutor<Customer> {
 
     Optional<Customer> findByIdAndStatusNot(Long id, Status status);
+    boolean existsAllByMobileAndStatusNot(String mobile,Status status);
 }
