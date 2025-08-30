@@ -22,4 +22,5 @@ public enum WebPage {
     TRNP, //Transfer management
     CABM, //Cash book management
     CUSM, //Customer management
+    PROF, //Profit management
 }
